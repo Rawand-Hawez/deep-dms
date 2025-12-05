@@ -36,20 +36,22 @@ In Coolify's Environment section, add the following variables:
 # Port Configuration
 PORT=3000
 
-# Backend API
+# Backend API (required at build time)
 VITE_API_BASE_URL=https://dmsserver.inova.krd
 
-# Authentication Mode
+# Authentication Mode (required at build time)
 # Set to true for mock auth (development/testing)
 # Set to false for production with real authentication
-VITE_MOCK_AUTH=false
+VITE_MOCK_AUTH=true
 
-# Development Mode
+# Development Mode (required at build time)
 VITE_DEV_MODE=false
 
 # Environment
 NODE_ENV=production
 ```
+
+> **Important**: Environment variables prefixed with `VITE_` are baked into the build at compile time. If you change these values, you must rebuild the application.
 
 > **Note**: Copy values from `.env.production.example` and adjust as needed
 

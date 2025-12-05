@@ -4,6 +4,17 @@ FROM node:20-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Accept build arguments (Coolify will inject these)
+ARG VITE_API_BASE_URL
+ARG VITE_MOCK_AUTH
+ARG VITE_DEV_MODE
+
+# Convert build args to environment variables for Vite
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_MOCK_AUTH=${VITE_MOCK_AUTH}
+ENV VITE_DEV_MODE=${VITE_DEV_MODE}
+ENV NODE_ENV=production
+
 # Copy package files
 COPY package*.json ./
 
