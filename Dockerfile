@@ -43,7 +43,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 
 # Health check (using wget to check /health endpoint)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
 
 # Start nginx
