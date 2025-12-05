@@ -33,11 +33,17 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# Verify nginx config is valid
+RUN nginx -t
 
 # Expose port 80
 EXPOSE 80
