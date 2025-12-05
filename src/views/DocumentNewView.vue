@@ -62,7 +62,7 @@ const locationAbbreviations: Record<string, string> = {
 
 // Process/Function options with abbreviations
 const processOptions: Record<string, string> = {
-  Quality: 'QMS',
+  Quality: 'QUA',
   Engineering: 'ENG',
   IT: 'ITS',
   Manufacturing: 'MAN',
@@ -186,8 +186,10 @@ const handleSubmit = async () => {
           // ... other fields
           // documentCode: `${documentCodePattern.value.prefix}-${String(finalSequence).padStart(3, '0')}`, 
           // Backend generates code.
-          title: formData.value.title,      documentType: formData.value.documentType,
-      processOrFunction: formData.value.processOrFunction || undefined,
+          title: formData.value.title,
+      documentType: formData.value.documentType,
+      // Send the abbreviation code (e.g., 'QMS') instead of display name (e.g., 'Quality')
+      processOrFunction: getDepartmentAbbreviation(formData.value.processOrFunction) || undefined,
       // Map full name to abbreviation code for backend validation
       departmentOrSite: locationAbbreviations[formData.value.departmentOrSite] || formData.value.departmentOrSite,
       keywords: formData.value.keywords
@@ -328,31 +330,8 @@ const handleCancel = () => {
           </div>
         </div>
 
-        <!-- Document Type (1/3) + Department/Site (1/3) + Process/Function (1/3) -->
+        <!-- Department/Site (1/3) + Process/Function (1/3) + Document Type (1/3) -->
         <div class="grid grid-cols-3 gap-4">
-          <div class="space-y-2">
-            <Label for="document-type">
-              Document Type <span class="text-red-500">*</span>
-            </Label>
-            <select
-              id="document-type"
-              v-model="formData.documentType"
-              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="Standard">Standard</option>
-              <option value="Procedure">Procedure</option>
-              <option value="SOP">SOP</option>
-              <option value="Policy">Policy</option>
-              <option value="WorkInstruction">Work Instruction</option>
-              <option value="Manual">Manual</option>
-              <option value="Form">Form</option>
-              <option value="Other">Other</option>
-            </select>
-            <p class="text-xs text-slate-500">
-              Code: {{ typeAbbreviations[formData.documentType] }}
-            </p>
-          </div>
-
           <div class="space-y-2">
             <Label for="department">Department/Site <span class="text-red-500">*</span></Label>
             <select
@@ -390,6 +369,29 @@ const handleCancel = () => {
             </select>
             <p class="text-xs text-slate-500">
               Code: {{ getDepartmentAbbreviation(formData.processOrFunction) }}
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="document-type">
+              Document Type <span class="text-red-500">*</span>
+            </Label>
+            <select
+              id="document-type"
+              v-model="formData.documentType"
+              class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="Standard">Standard</option>
+              <option value="Procedure">Procedure</option>
+              <option value="SOP">SOP</option>
+              <option value="Policy">Policy</option>
+              <option value="WorkInstruction">Work Instruction</option>
+              <option value="Manual">Manual</option>
+              <option value="Form">Form</option>
+              <option value="Other">Other</option>
+            </select>
+            <p class="text-xs text-slate-500">
+              Code: {{ typeAbbreviations[formData.documentType] }}
             </p>
           </div>
         </div>
