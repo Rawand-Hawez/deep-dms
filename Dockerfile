@@ -6,14 +6,17 @@ ARG VITE_API_BASE_URL
 ARG VITE_MOCK_AUTH
 ARG VITE_DEV_MODE
 
+# Install build dependencies for native modules (Python, make, g++ for node-gyp)
+RUN apk add --no-cache python3 make g++
+
 # Set working directory
 WORKDIR /app
 
-# Copy package files first for better caching
-COPY package*.json ./
+# Copy package files and npm config for better caching
+COPY package*.json .npmrc* ./
 
-# Install dependencies (including devDependencies for build)
-RUN npm install
+# Install dependencies with increased network timeout and retry
+RUN npm install --prefer-offline --no-audit --progress=false
 
 # Copy source code
 COPY . .
