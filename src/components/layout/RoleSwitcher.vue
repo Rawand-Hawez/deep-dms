@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import { ShieldCheck, ShieldAlert, Users, PenTool, Eye, ChevronDown } from 'lucide-vue-next'
+import { ShieldAlert, Users, PenTool, Eye, ChevronDown } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const isOpen = ref(false)
 const dropdownRef = ref<HTMLDivElement | null>(null)
 
 onMounted(() => {
-  console.log('[RoleSwitcher] Component mounted. Current role:', authStore.roles)
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -18,7 +17,6 @@ onUnmounted(() => {
 
 const availableRoles = [
   { value: 'Admin', label: 'Admin', icon: ShieldAlert },
-  { value: 'QHSE', label: 'QHSE', icon: ShieldCheck },
   { value: 'Approver', label: 'Approver', icon: Users },
   { value: 'Author', label: 'Author', icon: PenTool },
   { value: 'Reader', label: 'Reader', icon: Eye },
@@ -27,7 +25,6 @@ const availableRoles = [
 const currentRole = computed(() => {
   // Return the highest priority role
   if (authStore.isAdmin) return 'Admin'
-  if (authStore.isQHSE) return 'QHSE'
   if (authStore.isApprover) return 'Approver'
   if (authStore.isAuthor) return 'Author'
   return 'Reader'
@@ -39,7 +36,6 @@ const currentRoleData = computed(() => {
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
-  console.log('[RoleSwitcher] Dropdown toggled:', isOpen.value)
 }
 
 function handleClickOutside(event: MouseEvent) {
@@ -49,9 +45,7 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 function handleRoleChange(newRole: string) {
-  console.log('[RoleSwitcher] Changing role to:', newRole)
   authStore.setRoles([newRole])
-  console.log('[RoleSwitcher] Role updated. Current roles:', authStore.roles)
   isOpen.value = false
 }
 </script>

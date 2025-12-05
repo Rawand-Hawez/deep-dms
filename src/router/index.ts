@@ -26,6 +26,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'My Documents', requiresAuth: true },
   },
   {
+    path: '/documents/new',
+    name: 'document-new',
+    component: () => import('@/views/DocumentNewView.vue'),
+    meta: { title: 'Create Document', requiresAuth: true, requiresRoles: ['Author', 'Admin'] },
+  },
+  {
     path: '/documents/:id',
     name: 'document-details',
     component: () => import('@/views/DocumentDetailsView.vue'),
@@ -44,10 +50,10 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'About', requiresAuth: true },
   },
   {
-    path: '/sharepoint-test',
-    name: 'sharepoint-test',
-    component: () => import('@/views/SharePointTestView.vue'),
-    meta: { title: 'SharePoint Test', requiresAuth: true },
+    path: '/manual',
+    name: 'manual',
+    component: () => import('@/views/UserManualView.vue'),
+    meta: { title: 'User Manual', requiresAuth: true },
   },
   {
     path: '/admin',

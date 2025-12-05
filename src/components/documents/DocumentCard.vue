@@ -56,7 +56,7 @@ const formatDate = (dateString: string) => {
     
     <CardContent class="flex-1 pb-3 space-y-4">
       <p class="text-sm text-slate-600 line-clamp-3">
-        {{ document.summary }}
+        {{ document.summary.replace(/<[^>]*>?/gm, '') }}
       </p>
       
       <div class="flex flex-wrap gap-1">

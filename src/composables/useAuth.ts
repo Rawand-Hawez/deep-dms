@@ -28,7 +28,6 @@ export function useAuth() {
   const isAuthenticated = computed(() => authStore.isAuthenticated)
   const user = computed(() => authStore.user)
   const isAdmin = computed(() => authStore.isAdmin)
-  const isQHSE = computed(() => authStore.isQHSE)
   const isApprover = computed(() => authStore.isApprover)
   const isAuthor = computed(() => authStore.isAuthor)
 
@@ -41,12 +40,11 @@ export function useAuth() {
     error.value = null
 
     try {
-      // Check if we're in mock/dev mode
-      const mockMode = import.meta.env.VITE_MOCK_AUTH === 'true'
+      // Check if we're in mock/dev mode (handle both boolean and string values)
+      const mockMode = import.meta.env.VITE_MOCK_AUTH === 'true' || import.meta.env.VITE_MOCK_AUTH === true
 
       if (mockMode) {
         // Use mock authentication
-        console.log('[useAuth] Running in mock mode - using mock login')
         authStore.mockLogin()
         isLoading.value = false
         return
@@ -180,12 +178,12 @@ export function useAuth() {
    */
   async function fetchUserRoles(): Promise<string[]> {
     try {
-      const response = await httpClient.get<{ roles: string[] }>('/auth/roles')
+      const response = await httpClient.get<{ roles: string[]}>('/api/auth/roles')
       return response.roles
     } catch (err) {
       console.error('[useAuth] Failed to fetch roles:', err)
-      // Temporary: Force Admin roles for development/testing when backend is unreachable
-      return ['Admin', 'QHSE', 'Approver', 'Author', 'Reader'] 
+      // Temporary: Default to Admin role for development/testing when backend is unreachable
+      return ['Admin']
     }
   }
 
@@ -232,7 +230,6 @@ export function useAuth() {
     user,
     // Role checks
     isAdmin,
-    isQHSE,
     isApprover,
     isAuthor,
     // Methods

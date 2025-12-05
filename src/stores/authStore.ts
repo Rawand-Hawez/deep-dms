@@ -35,7 +35,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAdmin = computed(() => roles.value.includes('Admin'))
-  const isQHSE = computed(() => roles.value.includes('QHSE'))
   const isApprover = computed(() => roles.value.includes('Approver'))
   const isAuthor = computed(() => roles.value.includes('Author'))
 
@@ -79,11 +78,11 @@ export const useAuthStore = defineStore('auth', () => {
   // Mock login for development
   function mockLogin() {
     setUser({
-      id: 'user-1',
-      displayName: 'John Doe',
-      email: 'john.doe@example.com',
+      id: 'admin-1',
+      displayName: 'Admin User',
+      email: 'admin@example.com',
     })
-    setRoles(['Author', 'Approver'])
+    setRoles(['Admin'])
     setAccessToken('mock-token')
   }
 
@@ -95,7 +94,6 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken,
     // Getters
     isAdmin,
-    isQHSE,
     isApprover,
     isAuthor,
     // Actions

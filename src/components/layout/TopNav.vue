@@ -17,13 +17,21 @@ import {
 
 const authStore = useAuthStore()
 
-const navItems = [
-  { name: 'Documents', to: '/' }, 
-  { name: 'My Tasks', to: '/my-documents' }, 
-]
+const navItems = computed(() => {
+  const items = [
+    { name: 'Catalogue', to: '/' }
+  ]
+  
+  // Only show 'My Tasks' if user has a role that needs it
+  if (authStore.isAuthor || authStore.isApprover || authStore.isAdmin) {
+    items.push({ name: 'My Tasks', to: '/my-documents' })
+  }
+  
+  return items
+})
 
-const showRoleSwitcher = computed(() => import.meta.env.VITE_MOCK_AUTH === 'true')
-const isAdminOrQHSE = computed(() => authStore.isAdmin || authStore.roles.includes('QHSE'))
+const showRoleSwitcher = computed(() => import.meta.env.VITE_MOCK_AUTH === 'true' || import.meta.env.VITE_MOCK_AUTH === true)
+const isAdminOrQHSE = computed(() => authStore.isAdmin)
 
 </script>
 
@@ -94,6 +102,14 @@ const isAdminOrQHSE = computed(() => authStore.isAdmin || authStore.roles.includ
           class="text-sm font-semibold transition-colors hover:text-primary px-3 py-2 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100"
         >
           Features
+        </RouterLink>
+
+        <!-- User Manual Link -->
+        <RouterLink 
+          to="/manual" 
+          class="text-sm font-semibold transition-colors hover:text-primary px-3 py-2 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100"
+        >
+          User Manual
         </RouterLink>
 
         <!-- Role Switcher (Dev Mode Only) -->

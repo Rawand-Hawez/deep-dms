@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useSharePointDocuments } from '@/composables/useSharePointDocuments'
+import { useDocumentsApi } from '@/composables/useDocumentsApi'
 import type { DocumentRecord } from '@/stores/documentsStore'
 import {
   Card,
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui'
 import { Search, Edit, X, Save, FileText, Loader2, UploadCloud, File as FileIcon } from 'lucide-vue-next'
 
-const { updateDocument, isLoading } = useSharePointDocuments()
+const { updateDocument, getDocuments, isLoading } = useDocumentsApi()
 
 // Search state
 const searchQuery = ref('')
@@ -52,61 +52,14 @@ onMounted(async () => {
 async function loadAllDocuments() {
   isSearching.value = true
   try {
-    // Load from both libraries using sharePointService directly
-    const sharePointService = await import('@/services/sharePointService')
-    const service = sharePointService.default
+    // Load all documents from backend API (registry-based)
+    const result = await getDocuments()
 
-    const [authoringFiles, publishedFiles] = await Promise.all([
-      service.getFilesFromLibrary('DM-Authoring'),
-      service.getFilesFromLibrary('DM-Published')
-    ])
-
-    // Map files to DocumentRecords
-    const FIELD_NAMES = sharePointService.DOCUMENT_REGISTRY_FIELD_NAMES
-
-    const mapToDocumentRecord = (file: any, library: 'Authoring' | 'Published'): DocumentRecord & { library: 'Authoring' | 'Published' } => {
-      const fields = file.fields || {}
-      return {
-        id: file.id,
-        sharepointItemId: file.id,
-        documentCode: String(fields[FIELD_NAMES.documentCode] || ''),
-        title: String(fields.Title || file.name),
-        documentType: String(fields[FIELD_NAMES.documentType] || 'Other') as DocumentRecord['documentType'],
-        processOrFunction: String(fields[FIELD_NAMES.processOrFunction] || ''),
-        departmentOrSite: String(fields[FIELD_NAMES.departmentOrSite] || ''),
-        revision: String(fields[FIELD_NAMES.revision] || '0'),
-        lifecycleStatus: String(fields[FIELD_NAMES.lifecycleStatus] || 'Draft') as DocumentRecord['lifecycleStatus'],
-        owner: {
-          id: String(fields[FIELD_NAMES.ownerId] || ''),
-          displayName: String(fields[FIELD_NAMES.owner] || ''),
-          email: String(fields[FIELD_NAMES.ownerEmail] || ''),
-        },
-        approver: {
-          id: String(fields[FIELD_NAMES.approverId] || ''),
-          displayName: String(fields[FIELD_NAMES.approver] || ''),
-          email: String(fields[FIELD_NAMES.approverEmail] || ''),
-        },
-        effectiveDate: fields[FIELD_NAMES.effectiveDate] as string | null,
-        nextReviewDate: fields[FIELD_NAMES.nextReviewDate] as string | null,
-        supersedesDocumentId: fields[FIELD_NAMES.supersedesDocumentId] as string | null,
-        supersededByDocumentId: fields[FIELD_NAMES.supersededByDocumentId] as string | null,
-        keywords: String(fields[FIELD_NAMES.keywords] || '').split(';').filter(Boolean),
-        summary: String(fields[FIELD_NAMES.summary] || ''),
-        createdAt: file.createdDateTime,
-        updatedAt: file.lastModifiedDateTime,
-        createdBy: { id: '', displayName: 'System', email: '' },
-        updatedBy: { id: '', displayName: 'System', email: '' },
-        authoringFileUrl: library === 'Authoring' ? file.webUrl : '',
-        publishedFileUrl: library === 'Published' ? file.webUrl : '',
-        archiveFileUrl: '',
-        library
-      }
-    }
-
-    const authoringDocs = authoringFiles.map(f => mapToDocumentRecord(f, 'Authoring'))
-    const publishedDocs = publishedFiles.map(f => mapToDocumentRecord(f, 'Published'))
-
-    allDocuments.value = [...authoringDocs, ...publishedDocs]
+    // Map documents and add library property based on lifecycle status
+    allDocuments.value = result.items.map(doc => ({
+      ...doc,
+      library: doc.lifecycleStatus === 'Published' ? 'Published' as const : 'Authoring' as const
+    }))
   } catch (error) {
     console.error('Failed to load documents:', error)
   } finally {
@@ -147,13 +100,12 @@ const selectDocument = async (doc: DocumentRecord & { library: 'Authoring' | 'Pu
 const enterEditMode = () => {
   if (!selectedDocument.value) return
 
-  editForm.value = {
-    title: selectedDocument.value.title,
-    keywords: selectedDocument.value.keywords?.join(', ') || '',
-    summary: selectedDocument.value.summary || '',
-    revision: selectedDocument.value.revision
-  }
-
+      editForm.value = {
+        title: selectedDocument.value.title,
+        keywords: selectedDocument.value.keywords?.join(', ') || '',
+        summary: selectedDocument.value.summary?.replace(/<[^>]*>?/gm, '') || '', // Strip HTML
+        revision: selectedDocument.value.revision
+      }
   isEditMode.value = true
 }
 
@@ -205,9 +157,8 @@ const saveChanges = async () => {
       revision: editForm.value.revision
     }
 
-    const libraryName = selectedDocument.value.library === 'Authoring' ? 'DM-Authoring' : 'DM-Published'
-
-    await updateDocument(selectedDocument.value.id, libraryName, updates)
+    // Backend API handles updates (no library name needed - registry-centric)
+    await updateDocument(selectedDocument.value.id, updates)
 
     // Update local reference
     Object.assign(selectedDocument.value, updates)

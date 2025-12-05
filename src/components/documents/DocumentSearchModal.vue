@@ -7,9 +7,9 @@ import {
   Button,
   CardHeader, CardTitle, Badge
 } from '@/components/ui'
-import { Search, Loader2, FileText, Folder } from 'lucide-vue-next'
-import sharePointService, { DOCUMENT_REGISTRY_FIELD_NAMES } from '@/services/sharePointService'
-import type { SharePointFile } from '@/services/sharePointService'
+import { Search, Loader2, FileText } from 'lucide-vue-next'
+import { useDocumentsApi } from '@/composables/useDocumentsApi'
+import type { DocumentRecord } from '@/stores/documentsStore'
 
 const props = defineProps<{
   open: boolean
@@ -21,14 +21,11 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const searchQuery = ref('')
-const searchResults = ref<
-  (SharePointFile & { library: 'Authoring' | 'Published' })[]
->([])
+const searchResults = ref<DocumentRecord[]>([])
 const isLoadingSearch = ref(false)
 const searchError = ref<string | null>(null)
 
-const AUTHORING_LIBRARY = import.meta.env.VITE_SHAREPOINT_AUTHORING_LIBRARY || 'DM-Authoring'
-const PUBLISHED_LIBRARY = import.meta.env.VITE_SHAREPOINT_PUBLISHED_LIBRARY || 'DM-Published'
+const { getDocuments } = useDocumentsApi()
 
 watch(() => props.open, (newVal) => {
   if (newVal) {
@@ -49,48 +46,8 @@ async function performSearch() {
   searchResults.value = []
 
   try {
-    const query = searchQuery.value.toLowerCase()
-    
-    // Search Authoring Library
-    const authoringFiles = await sharePointService.getFilesFromLibrary(AUTHORING_LIBRARY)
-    const filteredAuthoring = authoringFiles
-      .filter(file => {
-        const metadataCode = String(file.fields?.[DOCUMENT_REGISTRY_FIELD_NAMES.documentCode] || '')
-        const title = String(file.fields?.Title || file.name)
-        const summary = String(file.fields?.summary || '')
-        const keywords = String(file.fields?.keywords || '')
-
-        return (
-          metadataCode.toLowerCase().includes(query) ||
-          title.toLowerCase().includes(query) ||
-          file.name.toLowerCase().includes(query) || // Fallback to filename
-          summary.toLowerCase().includes(query) ||
-          keywords.toLowerCase().includes(query)
-        )
-      })
-      .map(file => ({ ...file, library: 'Authoring' as const }))
-
-    // Search Published Library
-    const publishedFiles = await sharePointService.getFilesFromLibrary(PUBLISHED_LIBRARY)
-    const filteredPublished = publishedFiles
-      .filter(file => {
-        const metadataCode = String(file.fields?.[DOCUMENT_REGISTRY_FIELD_NAMES.documentCode] || '')
-        const title = String(file.fields?.Title || file.name)
-        const summary = String(file.fields?.summary || '')
-        const keywords = String(file.fields?.keywords || '')
-
-        return (
-          metadataCode.toLowerCase().includes(query) ||
-          title.toLowerCase().includes(query) ||
-          file.name.toLowerCase().includes(query) || // Fallback to filename
-          summary.toLowerCase().includes(query) ||
-          keywords.toLowerCase().includes(query)
-        )
-      })
-      .map(file => ({ ...file, library: 'Published' as const }))
-
-    searchResults.value = [...filteredAuthoring, ...filteredPublished]
-
+    const result = await getDocuments({ search: searchQuery.value })
+    searchResults.value = result.items
   } catch (error) {
     console.error('Document search failed:', error)
     searchError.value = 'Failed to perform search. Please try again.'
@@ -99,11 +56,9 @@ async function performSearch() {
   }
 }
 
-function selectDocument(file: SharePointFile & { library: 'Authoring' | 'Published' }) {
-  // Navigate to DocumentEditorView with the document ID
-  emit('update:open', false) // Close modal
-  // We need to pass the library it came from for the editor to know where to fetch from
-  router.push({ name: 'document-edit', params: { documentId: file.id, library: file.library } })
+function selectDocument(doc: DocumentRecord) {
+  emit('update:open', false)
+  router.push(`/documents/${doc.id}`)
 }
 </script>
 
@@ -111,8 +66,8 @@ function selectDocument(file: SharePointFile & { library: 'Authoring' | 'Publish
   <SimpleDialog :open="props.open" @update:open="(val) => emit('update:open', val)">
     <div class="space-y-4">
       <CardHeader class="p-0 pb-4">
-        <CardTitle class="text-2xl font-bold">Edit Document</CardTitle>
-        <p class="text-sm text-muted-foreground">Search for a document by code, name, keywords or summary to edit.</p>
+        <CardTitle class="text-2xl font-bold">Find Document</CardTitle>
+        <p class="text-sm text-muted-foreground">Search for a document by code, name, keywords or summary.</p>
       </CardHeader>
       
       <div class="relative">
@@ -138,21 +93,20 @@ function selectDocument(file: SharePointFile & { library: 'Authoring' | 'Publish
       <div v-if="searchError" class="text-sm text-destructive">{{ searchError }}</div>
 
       <div v-if="searchResults.length > 0" class="max-h-80 overflow-y-auto border rounded-md">
-        <div v-for="file in searchResults" :key="file.id" 
+        <div v-for="doc in searchResults" :key="doc.id" 
           class="flex items-center justify-between p-3 border-b hover:bg-muted cursor-pointer transition-colors"
-          @click="selectDocument(file)"
+          @click="selectDocument(doc)"
         >
           <div class="flex items-center gap-3">
             <FileText class="h-5 w-5 text-blue-600" />
             <div>
-              <p class="font-medium text-sm">{{ file.name }}</p>
-              <p class="text-xs text-muted-foreground">{{ file.fields?.[DOCUMENT_REGISTRY_FIELD_NAMES.documentCode] || 'No Code' }}</p>
+              <p class="font-medium text-sm">{{ doc.title }}</p>
+              <p class="text-xs text-muted-foreground">{{ doc.documentCode || 'No Code' }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <Badge variant="outline" :class="file.library === 'Authoring' ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'">
-              <Folder class="h-3 w-3 mr-1" />
-              {{ file.library }}
+            <Badge variant="outline">
+              {{ doc.lifecycleStatus }}
             </Badge>
           </div>
         </div>

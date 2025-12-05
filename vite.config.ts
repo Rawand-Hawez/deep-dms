@@ -10,4 +10,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://dmsserver.inova.krd',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })
