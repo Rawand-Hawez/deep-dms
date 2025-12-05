@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import msalClient from '@/services/msalClient'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -102,15 +101,8 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  // Check if we're in mock mode
-  const mockMode = import.meta.env.VITE_MOCK_AUTH === 'true'
-
-  // Check if user is authenticated
-  const isAuthenticated = mockMode
-    ? authStore.isAuthenticated
-    : msalClient.isAuthenticated()
-
-  if (!isAuthenticated) {
+  // Check if user is authenticated (mock mode only)
+  if (!authStore.isAuthenticated) {
     // Redirect to login if not authenticated
     if (to.name !== 'login') {
       next({

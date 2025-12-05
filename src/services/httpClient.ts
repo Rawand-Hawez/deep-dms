@@ -1,10 +1,8 @@
-import msalClient from './msalClient'
-
 /**
- * HTTP Client Service
+ * HTTP Client Service (Mock Auth Only)
  *
  * Centralized HTTP client for API calls with:
- * - Automatic token injection
+ * - Mock token injection
  * - Error handling
  * - Request/response interceptors
  */
@@ -50,45 +48,33 @@ class HTTPClientService {
       headers.set('Content-Type', 'application/json')
     }
 
-    // Add authorization token if required
+    // Add authorization token if required (mock auth only)
     if (requiresAuth) {
-      // In development with mock auth, add both Authorization and X-Mock-Role headers
-      if (import.meta.env.DEV) {
-        // Use mock token for backend authentication
-        const mockToken = '8cMu1ufnW9dGyIJtXj4ZcJEclWIuKWQB'
-        headers.set('Authorization', `Bearer ${mockToken}`)
-        
-        // Also add X-Mock-Role for role-based testing
-        let mockRole = 'Admin' // Default fallback
-        try {
-          const storedAuth = localStorage.getItem('deep-dms-auth')
-          if (storedAuth) {
-            const authData = JSON.parse(storedAuth)
-            if (authData.roles && Array.isArray(authData.roles) && authData.roles.length > 0) {
-              // Prefer higher privilege roles
-              if (authData.roles.includes('Admin')) mockRole = 'Admin'
-              else if (authData.roles.includes('QHSE')) mockRole = 'QHSE'
-              else if (authData.roles.includes('Approver')) mockRole = 'Approver'
-              else if (authData.roles.includes('Author')) mockRole = 'Author'
-              else mockRole = authData.roles[0]
-            }
+      // Use mock token for backend authentication
+      const mockToken = '8cMu1ufnW9dGyIJtXj4ZcJEclWIuKWQB'
+      headers.set('Authorization', `Bearer ${mockToken}`)
+
+      // Add X-Mock-Role header for role-based testing
+      let mockRole = 'Admin' // Default fallback
+      try {
+        const storedAuth = localStorage.getItem('deep-dms-auth')
+        if (storedAuth) {
+          const authData = JSON.parse(storedAuth)
+          if (authData.roles && Array.isArray(authData.roles) && authData.roles.length > 0) {
+            // Prefer higher privilege roles
+            if (authData.roles.includes('Admin')) mockRole = 'Admin'
+            else if (authData.roles.includes('QHSE')) mockRole = 'QHSE'
+            else if (authData.roles.includes('Approver')) mockRole = 'Approver'
+            else if (authData.roles.includes('Author')) mockRole = 'Author'
+            else mockRole = authData.roles[0]
           }
-        } catch (e) {
-          console.warn('[HTTP Client] Failed to read auth state for mock role', e)
         }
-        
-        headers.set('X-Mock-Role', mockRole)
-        console.debug(`[HTTP Client] Using mock role: ${mockRole}`)
-      } else {
-        // In production, use real MSAL token
-        try {
-          const token = await msalClient.acquireToken()
-          headers.set('Authorization', `Bearer ${token}`)
-        } catch (error) {
-          console.error('[HTTP Client] Failed to acquire token:', error)
-          throw this.createError(401, 'Authentication failed')
-        }
+      } catch (e) {
+        console.warn('[HTTP Client] Failed to read auth state for mock role', e)
       }
+
+      headers.set('X-Mock-Role', mockRole)
+      console.debug(`[HTTP Client] Using mock role: ${mockRole}`)
     }
 
     try {
