@@ -16,8 +16,7 @@ dist-ssr
 !.env.example
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode
 .idea
 .DS_Store
 *.suo
@@ -25,4 +24,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-docs/*
+
+# Documentation and AI assistant configs
+docs
+.claude
+.kiro
+mock-backend
+
+# AI assistant rules
+.clinerules/byterover-rules.md
+.kilocode/rules/byterover-rules.md
+.roo/rules/byterover-rules.md
+.windsurf/rules/byterover-rules.md
+.cursor/rules/byterover-rules.mdc
+.qoder/rules/byterover-rules.md
+.augment/rules/byterover-rules.md
