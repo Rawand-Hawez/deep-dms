@@ -4,9 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-  Separator,
-  Badge
+  Separator
 } from '@/components/ui'
 import { 
   BookOpen, 

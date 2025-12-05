@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useDocumentsApi } from '@/composables/useDocumentsApi'
@@ -12,7 +12,6 @@ import {
   Input,
   Label,
   Textarea,
-  Badge,
   Separator,
 } from '@/components/ui'
 import { Upload, FileText, Loader2, Hash } from 'lucide-vue-next'
@@ -155,7 +154,7 @@ const fetchNextSequence = async () => {
 const handleFileSelect = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.files && input.files.length > 0) {
-    selectedFile.value = input.files[0]
+    selectedFile.value = input.files[0] || null
   }
 }
 
@@ -181,11 +180,6 @@ const isFormValid = computed(() => {
 // Submit handler
 const handleSubmit = async () => {
   if (!isFormValid.value) return
-  
-  // Use API sequence if available, otherwise parse manual input
-  const finalSequence = nextSequence.value !== null 
-    ? nextSequence.value 
-    : parseInt(manualSequence.value, 10)
 
       try {
         const metadata: Partial<DocumentRecord> = {
@@ -202,8 +196,8 @@ const handleSubmit = async () => {
       summary: formData.value.summary || '',
       owner: authStore.user || undefined,
       approver: formData.value.approverEmail ? {
-        id: 'manual-approver', // Placeholder ID
-        displayName: formData.value.approverEmail.split('@')[0], // Guess name
+        id: 'manual-approver',
+        displayName: formData.value.approverEmail.split('@')[0] || 'Unknown',
         email: formData.value.approverEmail
       } : (authStore.user || undefined),
     }
@@ -415,8 +409,7 @@ const handleCancel = () => {
                 :disabled="!sequenceError && nextSequence === null"
                 placeholder="Click Generate ->"
                 @blur="manualSequence = manualSequence.padStart(3, '0')"
-                class="font-mono bg-slate-50"
-                :class="{'border-amber-300 focus-visible:ring-amber-200': sequenceError, 'cursor-not-allowed opacity-70': !sequenceError && nextSequence === null}"
+                :class="sequenceError ? 'font-mono bg-slate-50 border-amber-300 focus-visible:ring-amber-200' : (!sequenceError && nextSequence === null) ? 'font-mono bg-slate-50 cursor-not-allowed opacity-70' : 'font-mono bg-slate-50'"
               />
               <Button 
                 type="button" 

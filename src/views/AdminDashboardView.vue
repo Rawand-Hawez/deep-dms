@@ -8,15 +8,14 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
   Badge
 } from '@/components/ui'
-import { 
-  BarChart3, 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle, 
-  ArrowRight, 
+import {
+  BarChart3,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
   Users,
-  FileCheck,
-  AlertTriangle
+  FileCheck
 } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 
@@ -112,7 +111,7 @@ const formatDate = (dateString: string) => {
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
       <!-- Overdue Reviews -->
-      <Card class="col-span-4" :class="{'border-amber-200 bg-amber-50/30': overdueReviews.length > 0}">
+      <Card :class="overdueReviews.length > 0 ? 'col-span-4 border-amber-200 bg-amber-50/30' : 'col-span-4'">
         <CardHeader>
           <div class="flex items-center gap-2">
             <CardTitle>Overdue Reviews</CardTitle>

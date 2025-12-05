@@ -5,7 +5,7 @@ import { useDocumentsApi } from '@/composables/useDocumentsApi'
 import {
   Input, Button, Card, CardHeader, CardTitle, CardContent, Badge,
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent
 } from '@/components/ui'
 import { Search, Bot, Sparkles, X, Eye, Filter, ChevronDown } from 'lucide-vue-next'
 
